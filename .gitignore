@@ -1,0 +1,55 @@
+# =========================
+# Dataset
+# =========================
+/split/
+/split_sample/
+
+
+# =========================
+# Course-provided materials
+# Keep locally, don't publish
+# =========================
+/13 Project 1 - Regression - Trip Duration Prediction.pdf
+/code_warmstart.py
+
+
+# =========================
+# Trained models
+# =========================
+/models/
+*.pkl
+*.joblib
+
+
+# =========================
+# Python cache
+# =========================
+__pycache__/
+*.py[cod]
+
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/
+
+
+# =========================
+# Environment / secrets
+# =========================
+.env
+.venv/
+venv/
+
+
+# =========================
+# Editor files
+# =========================
+.vscode/
+
+
+# =========================
+# OS junk
+# =========================
+.DS_Store
+Thumbs.db
