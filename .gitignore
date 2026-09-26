@@ -53,3 +53,17 @@ venv/
 # =========================
 .DS_Store
 Thumbs.db
+# Optional local experiment tracking
+mlruns/
+mlartifacts/
+mlflow.db
+*.db-shm
+*.db-wal
+.env.*
+!.env.example
+/predictions*.csv
+/reports/sample/
+.pytest_cache/
+/reports/baseline/
+__pycache__/
+*.py[cod]

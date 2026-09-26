@@ -1,0 +1,49 @@
+{
+  "official_model": "Ridge(alpha=1)",
+  "numeric_features": [
+    "log_distance",
+    "distance_km",
+    "lat_diff",
+    "lon_diff",
+    "hour",
+    "dayofweek",
+    "month",
+    "dayofyear",
+    "bearing_sin",
+    "bearing_cos"
+  ],
+  "categorical_features": [
+    "vendor_id",
+    "store_and_fwd_flag",
+    "passenger_count",
+    "same_location",
+    "pickup_cluster",
+    "dropoff_cluster",
+    "pickup_near_jfk",
+    "pickup_near_lga",
+    "pickup_near_ewr",
+    "dropoff_near_jfk",
+    "dropoff_near_lga",
+    "dropoff_near_ewr",
+    "morning_rush",
+    "evening_rush",
+    "is_weekend",
+    "route_cluster"
+  ],
+  "clean_cluster_fit": true,
+  "n_clusters": 5,
+  "random_state": 42,
+  "train_rows": 1000000,
+  "validation_rows": 229319,
+  "validation_metrics": {
+    "rmse": 0.4951872691565308,
+    "r2": 0.6168806185241916
+  },
+  "target": "log1p(trip_duration)",
+  "python": "3.12.13",
+  "sklearn": "1.9.0",
+  "numpy": "2.4.6",
+  "pandas": "3.0.3",
+  "selection_rule": "accept only RMSE decrease > 0.000001 vs retained incumbent",
+  "test_evaluated": false
+}
