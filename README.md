@@ -1,99 +1,78 @@
 # NYC Taxi Trip Duration Prediction
 
-## Goal
-Predict taxi trip duration from pickup time, trip endpoints, and available trip metadata. Train on `log1p(trip_duration)` and evaluate **RMSE and R² on that log target**; RMSE is not in seconds.
+A Classical ML learning project: predict trip duration using `log1p(trip_duration)`. RMSE and R² are measured on the log target, not in seconds.
 
-## Official Model
-**`Ridge(alpha=1)` is the official course model.** Polynomial Ridge, Random Forest, Gradient Boosting, and XGBoost are diagnostic benchmarks only. Only the official plain Ridge and its train-fitted KMeans models are saved.
+## Official Course Model
+**Ridge(alpha=1)** remains the final course model. Polynomial Ridge, Random Forest, Gradient Boosting, and XGBoost are comparisons, even when their validation scores are better.
 
-## Dataset
-Use the instructor-provided files, not a replacement Kaggle split. Obtain them from the course project folder and place `train.csv`, `val.csv`, and the held-out `test.csv` under `split/`. The measured run uses 1,000,000 training rows and 229,319 validation rows. Put optional course samples under `split_sample/`.
+## Data and split
+Put the instructor's `train.csv`, `val.csv`, and held-out `test.csv` in `split/`. Keep the provided split; do not split the EDA export again. Training removes missing `trip_duration` rows only, in memory. Validation/test labels must be valid; their rows are never removed to improve scores.
 
-The test set is reserved for one final evaluation after development. It was not opened or evaluated during this refactor. All validation rows remain in every comparison, including coordinate outliers. `data/processed_taxi.csv` is a previously committed, small EDA export retained intentionally; training uses the provided raw split instead.
+The preserved Colab run (`notebooks/Untitled13.ipynb`) used **993,415 training rows** after removing one missing label, and **229,319 validation rows**. The existing local training file has 1,000,000 rows; it is a different input. Removing one missing label does not explain that entire size difference. Scores cannot be reproduced exactly without the same input files.
 
-## Project Structure
+## Features and leakage prevention
+- Time: hour, weekday, month, day of year, weekday rush flags (07:00–09:59 / 16:00–18:59), weekend.
+- Geography: Haversine km, log1p distance, absolute latitude/longitude differences, same location ≤0.1 km, bearing sine/cosine.
+- Airports: pickup/dropoff within 2 km of fixed approximate JFK, LGA, EWR points.
+- Separate pickup/dropoff KMeans, **K=5**, fitted only on training coordinates inside the existing NYC bounds. This fitting mask does not remove model-training or evaluation rows.
+- Cluster IDs and their route pair are categorical and one-hot encoded. Manhattan distance was rejected and is excluded.
+
+Every model has its own saved preprocessing pipeline. Scalers/encoders fit on train only. Polynomial degree 2 expands **only numerical features**, with scaling before and after expansion. All hyperparameters match the previous Colab implementation; they are explicit in `src/train.py`.
+
+## Validation results — historical Colab run
+| Model | Validation RMSE | Validation R² |
+|---|---:|---:|
+| Ridge (Official Course Model) | 0.498973 | 0.611001 |
+| Polynomial Degree 2 + Ridge | 0.466298 | 0.660279 |
+| Random Forest | 0.426733 | 0.715483 |
+| Gradient Boosting | 0.441517 | 0.695428 |
+| XGBoost | 0.420183 | 0.724151 |
+
+The ablation was **sequential/greedy**, not independent single-feature tests. See `reports/experiment_summary.md`. Existing local-run CSVs are preserved separately from `reports/colab_*.csv`; the rewritten code was not fully retrained during this refactor.
+
+## Structure
 ```text
-.
-├── data/processed_taxi.csv              # existing tracked EDA sample
-├── notebooks/
-│   ├── 01_data_understanding.ipynb      # preserved EDA, portable paths
-│   └── 02_model_comparison.ipynb        # experiments through shared source
-├── src/
-│   ├── __init__.py
-│   ├── features.py                     # shared target-independent features
-│   ├── train.py                        # Ridge, ablations, optional benchmarks
-│   └── test.py                         # final inference/evaluation only
-├── tests/test_pipeline.py               # synthetic leakage/roundtrip checks
-├── reports/
-│   ├── experiment_summary.md
-│   ├── feature_ablation.csv
-│   ├── benchmark_results.csv
-│   └── run_metadata.json
-├── models/                             # generated, ignored
-├── split/                              # course data, ignored
-├── split_sample/                       # course samples, ignored
-├── README.md
-├── requirements.txt
-└── .gitignore
+notebooks/
+  01_data_understanding.ipynb  # EDA only; existing plots preserved
+  02_model_comparison.ipynb    # visible implementation, step by step
+  Untitled13.ipynb             # unchanged Colab evidence
+src/
+  __init__.py
+  features.py                 # add_features, fit_kmeans, add_clusters
+  train.py                    # train, validate, save all five pipelines
+  test.py                     # manual final reporting for all five
+tests/test_pipeline.py        # small synthetic checks
+reports/                      # historical validation CSVs and summary
+models/                       # generated pipelines, KMeans, validation scores
+predictions/                  # five generated prediction CSVs
+split/                        # instructor's data
+split_sample/                 # optional learning samples
+data/processed_taxi.csv        # existing historical EDA export, not model input
+README.md
+requirements.txt
+.gitignore
 ```
-The course PDF, warmstart script, and editor settings remain locally available and ignored. Empty existing report subdirectories are preserved.
 
-## Feature Engineering
-Baseline numerical features: `log_distance`, `distance_km`, `lat_diff`, `lon_diff`, `hour`, `dayofweek`, `month`, `dayofyear`. Haversine uses Earth radius 6371.0088 km; `log_distance=log1p(distance_km)`. Coordinate differences are absolute, matching the original large-data script (historical EDA used signed differences).
-
-Baseline categoricals: `vendor_id`, `store_and_fwd_flag`, `passenger_count`, `same_location` (distance ≤ 0.1 km), `pickup_cluster`, `dropoff_cluster`. Cluster IDs have no numerical ordering and are one-hot encoded.
-
-Retained additions:
-- Initial bearing as `bearing_sin` and `bearing_cos`, avoiding the 0°/360° discontinuity. Both are zero at identical endpoints.
-- Pickup/dropoff flags within 2 km of approximate reference points for JFK (40.6413, -73.7781), LaGuardia (40.7769, -73.8740), and Newark (40.6895, -74.1745). These fixed geographic heuristics are not terminal boundaries or target-tuned radii. Newark falls within the existing study-area bounds.
-- Weekday morning rush 07:00–09:59 and evening rush 16:00–18:59; Saturday/Sunday `is_weekend`. Pickup datetimes are treated as supplied local NYC wall time.
-- Categorical `route_cluster`, the pickup/dropoff cluster pair.
-
-Manhattan-style distance sums north/south and east/west Haversine legs in km. It worsened validation RMSE and was rejected. This geographic approximation is not a road-network distance.
-
-## Leakage Prevention
-Each model owns a fresh ColumnTransformer: StandardScaler for numerical features and OneHotEncoder(handle_unknown="ignore") for categoricals. Every learned transformation is fitted on training rows only. Numerical polynomial expansion uses degree 2 only, with scaling before and after expansion; categorical columns are never polynomial-expanded.
-
-Separate pickup and dropoff KMeans models use K=5, random_state=42, n_init="auto". Baseline A fits all training coordinates to reproduce the previous script. A separate controlled experiment restricts KMeans fitting to training trips whose **both** endpoints are within latitude [40.4, 41.0], longitude [-74.3, -73.6], the bounds already used in EDA. This improved validation and was retained. All training and validation rows still receive cluster predictions; no rows are removed from Ridge fitting or scoring. Validation and later test data use only `predict()`.
-
-## Experiments
-The previous sample results (different sample preparation/split) included Ridge RMSE ≈ 0.476596, R² ≈ 0.647851. They are historical observations, not full-data results or rerun measurements.
-
-On the supplied large split, the baseline reproduced RMSE **0.510391**, R² **0.592994**. The selected plain Ridge reached RMSE **0.495187**, R² **0.616881**. Polynomial degree 2 reached RMSE **0.464111**, R² **0.663458**, while remaining experimental.
-
-See [the full experiment report](reports/experiment_summary.md) for each candidate, rejected features, historical evidence, and measured benchmark scores. CSVs contain unrounded metrics. Additions are tried against the retained incumbent and accepted only for an RMSE decrease greater than 0.000001. This is a transparent selection rule, not a statistical significance claim. Delta columns named `previous` refer to the retained incumbent, not necessarily the preceding rejected row.
-
-## Running
-From the project root, in a Python environment with the requirements installed:
+## Install and train
+Run from the project root:
 ```bash
 pip install -r requirements.txt
-# Baseline only; writes baseline artifacts/results to separate directories:
-python src/train.py --train split/train.csv --val split/val.csv --model-dir models/baseline --report-dir reports/baseline
-# Reproduce retained feature selection and all benchmark results:
-python src/train.py --train split/train.csv --val split/val.csv --experiments --benchmarks --jobs 4
-# Feature selection and polynomial comparison, without tree benchmarks:
-python src/train.py --train split/train.csv --val split/val.csv --experiments --polynomial
 python -m unittest discover -s tests -v
+python src/train.py --train split/train.csv --val split/val.csv
 ```
-`python src/train.py --train split/train.csv --val split/val.csv` is also supported; without `--experiments` it trains baseline A and overwrites default saved models/reports. Use separate output directories to preserve the selected model. `--n-clusters` defaults to 5; no cluster-count search was performed.
+This now trains the **fixed retained features and all five models** by default. It saves five `.joblib` pipelines, two KMeans models, and their matching `models/validation_results.csv`. The report CSV is updated only after the full training loop finishes. Full tree benchmarks can take several minutes. Use `--jobs 4` (default) to bound CPU threads. For a quick learning run, pass sample train/validation paths and separate `--model-dir` / `--report-dir` folders.
 
-Optional MLflow logging:
+The old `--experiments`, `--polynomial`, `--benchmarks`, `--n-clusters`, and `--mlflow-uri` options were removed to keep the final workflow simple. Historical ablation reports remain available. No new feature selection, metadata JSON generation, or MLflow dependency is in the core workflow.
+
+## FINAL test — manually, after review
+**Do not run test.py during model/feature selection.** Train/save all five models first; the old artifacts only include Ridge.
 ```bash
-python src/train.py --experiments --mlflow-uri http://127.0.0.1:5000
+python src/test.py --test split/test.csv
 ```
-The experiment is `NYC Taxi - Model Comparison`. Missing MLflow or an unavailable server produces a warning and training continues. Logging is off by default. Saved artifacts contain only scikit-learn pipelines plus separate KMeans; the selected feature columns are embedded in the pipeline and recorded in metadata.
+This command checks that all models and matching validation scores exist **before reading test data**. It loads saved train-fitted KMeans, calls `predict()` only, and creates:
+- `reports/final_test_results.csv`: validation and test RMSE/R² for all five models.
+- `predictions/{ridge,polynomial_ridge,random_forest,gradient_boosting,xgboost}_predictions.csv`: IDs, log predictions, and `maximum(0, expm1(prediction))` seconds.
 
-## Models
-Random Forest uses 80 trees, depth 16, min_samples_leaf=5, max_features=0.8. Gradient Boosting uses 100 depth-3 trees and subsample=0.3. XGBoost uses 300 depth-6 trees, learning_rate=0.05, CPU histogram training. These bounded settings avoid costly searches; all models receive the same full training split and selected feature columns. Gradient Boosting draws a training subsample per boosting iteration. All random seeds are 42. XGBoost is imported only for requested benchmarks and is skipped with a warning if unavailable.
+The final-test CSV currently has a header only: **no final test has run**. Test results are final reporting only; do not tune features, hyperparameters, or model choice after seeing them. Ridge remains official.
 
-## Final Test — Later Only
-After locking the official model, the following command loads the saved Ridge and train-fitted KMeans, writes duration predictions via `expm1` (clipped at zero), and explicitly evaluates log-target metrics:
-```bash
-python src/test.py --test split/test.csv --model-dir models --output predictions.csv --evaluate
-```
-**This command was not executed during development.** Omit `--evaluate` for prediction only; unlabeled CSVs are supported. Predictions preserve input row order and IDs when present. Only load trusted joblib artifacts.
-
-## Reproducibility
-Measured environment versions and retained columns are in `reports/run_metadata.json`; model hyperparameters are fixed in `src/train.py`. Numerical libraries may produce small differences across environments. Core dependencies include NumPy, pandas, scikit-learn, SciPy, joblib and threadpoolctl; notebooks additionally use Jupyter, matplotlib, seaborn and haversine. XGBoost and MLflow support optional benchmark/tracking workflows. No GPU is required.
-
-Models, raw/split datasets, predictions, caches, credentials and local MLflow artifacts are ignored. The existing processed EDA sample remains tracked deliberately. There are no machine-specific paths in project source or notebook code.
+Raw splits, model binaries, predictions, caches and local credentials are ignored. The previously tracked EDA sample is preserved unchanged; no new dataset or model binary is added to Git.

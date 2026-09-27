@@ -1,7 +1,6 @@
 numpy
 pandas
 scikit-learn>=1.2
-scipy
 joblib
 threadpoolctl
 xgboost
@@ -9,5 +8,3 @@ matplotlib
 seaborn
 haversine
 jupyter
-# Optional experiment tracking; training works without a server or this import.
-mlflow

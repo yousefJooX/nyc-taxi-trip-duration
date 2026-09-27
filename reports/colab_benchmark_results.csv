@@ -1,0 +1,6 @@
+model,rmse,r2,train_rows,validation_rows,source
+Ridge (Official Course Model),0.498973,0.611001,993415,229319,Untitled13.ipynb saved output (six decimals)
+Polynomial Degree 2 + Ridge,0.466298,0.660279,993415,229319,Untitled13.ipynb saved output (six decimals)
+Random Forest,0.426733,0.715483,993415,229319,Untitled13.ipynb saved output (six decimals)
+Gradient Boosting,0.441517,0.695428,993415,229319,Untitled13.ipynb saved output (six decimals)
+XGBoost,0.420183,0.724151,993415,229319,Untitled13.ipynb saved output (six decimals)
