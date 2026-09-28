@@ -1,9 +1,0 @@
-experiment,rmse,r2,keep,train_rows,validation_rows,source
-A_baseline,0.511068,0.591914,True,993415,229319,Untitled13.ipynb saved output (six decimals)
-A_clean_clusters,0.507635,0.597378,True,993415,229319,Untitled13.ipynb saved output (six decimals)
-B_manhattan,0.507707,0.597264,False,993415,229319,Untitled13.ipynb saved output (six decimals)
-C_bearing,0.506711,0.598841,True,993415,229319,Untitled13.ipynb saved output (six decimals)
-D_airports,0.505704,0.600434,True,993415,229319,Untitled13.ipynb saved output (six decimals)
-E_rush,0.501983,0.606293,True,993415,229319,Untitled13.ipynb saved output (six decimals)
-F_weekend,0.500666,0.608356,True,993415,229319,Untitled13.ipynb saved output (six decimals)
-G_route,0.498973,0.611001,True,993415,229319,Untitled13.ipynb saved output (six decimals)

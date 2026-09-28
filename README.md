@@ -51,8 +51,6 @@ reports/
   benchmark_results.csv        # validation metrics
   final_test_results.csv       # matching validation and test metrics
   final_colab_run/             # execution logs and environment details
-  historical_local/           # supporting local experiment records
-  colab_*.csv                  # feature-selection experiment results
   experiment_summary.md        # experiment methodology and findings
 models/                        # trained pipelines and KMeans artifacts
 predictions/                   # per-model trip-duration predictions
@@ -114,4 +112,4 @@ The results reported above are from the completed final evaluation. Test results
 
 ## Experiment documentation
 
-See [Experiment summary](reports/experiment_summary.md) for feature engineering, ablation findings and model comparisons. Feature-selection reports use a separate 993,415-row training experiment; the final evaluation above uses 1,000,000 training rows. Each run's results are documented separately for reproducibility.
+See [Experiment summary](reports/experiment_summary.md) for the final feature pipeline, model settings and evaluation results. Validation and test metrics refer to the same saved pipelines from the completed Colab run.
