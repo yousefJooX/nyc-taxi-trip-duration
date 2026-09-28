@@ -4,11 +4,11 @@ Classical machine learning regression project predicting `log1p(trip_duration)`.
 
 **Official Course Model: Ridge(alpha=1).** Polynomial Ridge, Random Forest, Gradient Boosting and XGBoost are benchmarks. Better benchmark scores do not change the official course model.
 
-## Completed Colab training and final test
+## Model evaluation
 
 All five pipelines were trained with the locked settings, saved, and evaluated on the held-out test partition. No feature or hyperparameter tuning followed the test.
 
-- Training: **1,000,000 rows**, no missing-target rows removed.
+- Training: **1,000,000 rows**.
 - Validation: **229,319 rows**.
 - Test: **229,322 rows**, with a prediction export for each model.
 - Full training time: approximately **26.3 minutes** on Colab CPU.
@@ -26,33 +26,46 @@ XGBoost has the lowest test RMSE in this run. Ridge remains the official model.
 
 [Executed Colab notebook](https://colab.research.google.com/drive/1EETmiZuSLPmrZ0TDzVm07DDsKNowc1KW) (Google account access may be required).
 
+## Workflow
+
+1. Explore trip durations, timestamps and pickup/dropoff coordinates.
+2. Engineer time, distance, direction, airport and location-cluster features.
+3. Fit preprocessing and five regression models on the training partition.
+4. Compare models on validation data with fixed evaluation metrics.
+5. Evaluate the final pipelines on held-out test data and export predictions.
+
 ## Project structure
 
 ```text
 notebooks/
-  01_data_understanding.ipynb    # exploratory analysis
-  02_model_comparison.ipynb      # educational model workflow
+  01_data_understanding.ipynb    # data exploration and visualizations
+  02_model_comparison.ipynb     # step-by-step model implementation
 src/
-  features.py                   # feature engineering and train-fitted KMeans
-  train.py                      # fixed five-model training and validation
-  test.py                       # prediction-only final evaluation
   __init__.py
-tests/test_pipeline.py           # small synthetic software tests
+  features.py                  # feature engineering and location clustering
+  train.py                     # train, validate and save five pipelines
+  test.py                      # evaluate saved pipelines and export predictions
+tests/
+  test_pipeline.py             # synthetic checks for preprocessing and inference
 reports/
-  benchmark_results.csv         # NEW Colab validation results
-  final_test_results.csv        # NEW matched validation/test comparison
-  final_colab_run/               # environment, source hashes, logs, provenance
-  historical_local/             # previous local results, kept separate
-  colab_*.csv                   # historical 993,415-row experiment
-  experiment_summary.md         # learning narrative and final results
-models/                         # current trained pipelines; local, ignored
-predictions/                    # five final prediction CSVs; local, ignored
-split/                          # retained test.csv and val.csv; local, ignored
-split_sample/                   # retained train/val/test samples; local, ignored
-data/processed_taxi.csv          # historical EDA sample, not training input
+  benchmark_results.csv        # validation metrics
+  final_test_results.csv       # matching validation and test metrics
+  final_colab_run/             # execution logs and environment details
+  historical_local/           # supporting local experiment records
+  colab_*.csv                  # feature-selection experiment results
+  experiment_summary.md        # experiment methodology and findings
+models/                        # trained pipelines and KMeans artifacts
+predictions/                   # per-model trip-duration predictions
+split/                         # full-data input partitions
+split_sample/                  # small train/validation/test learning samples
+data/
+  processed_taxi.csv           # processed sample for exploratory analysis
+README.md
+requirements.txt
+.gitignore
 ```
 
-The older full `split/train.csv` and previous model artifacts were moved to a backup outside this repository during cleanup. Sample data and the existing test/validation files were preserved. The current trained artifacts remain available locally; GitHub contains code, notebooks and compact reports.
+Datasets, trained model binaries and prediction exports are local files excluded from Git. The repository includes source code, notebooks, a processed EDA sample and compact experiment reports.
 
 ## Features and leakage prevention
 
@@ -79,16 +92,26 @@ python src/train.py --train split_sample/train.csv --val split_sample/val.csv --
 
 These learning samples are local and are not distributed with the repository. Sample scores are not the reported full-data scores.
 
-## Reproduce the full run
+## Full-data training and evaluation
 
-Restore the original full training data into `split/train.csv` and supply the matching `val.csv` and `test.csv`. Do not create a new random split from the processed EDA sample. For Colab, use the executed notebook linked above with the matching input files. The temporary upload/train/test notebook is not included in this repository. Download trained artifacts before the runtime ends.
+Provide the course partitions as `split/train.csv`, `split/val.csv` and `split/test.csv`. Use these provided partitions directly; the processed EDA sample is not the training input.
 
-The final test for the recorded run is **already complete**. Use the saved CSVs for reporting; do not rerun it for tuning or model selection.
+Train and validate all five models:
 
-## Historical experiments
+```bash
+python src/train.py --train split/train.csv --val split/val.csv --jobs 4
+```
 
-The earlier feature-selection experiment used 993,415 usable training rows. Its six-decimal metrics are preserved in `reports/colab_*.csv`. The prior local ablation and metadata are in `reports/historical_local/`. Keep these separate from the new million-row Colab run. See `reports/experiment_summary.md` for the full study narrative.
+After all model and feature choices are fixed, evaluate the saved pipelines:
 
-## GitHub contents
+```bash
+python src/test.py --test split/test.csv
+```
 
-Raw splits, learning splits, model binaries, prediction exports, ZIP transfers, caches and local credentials are ignored. Compact validation/test reports and execution provenance are included. The historical tracked EDA sample is retained. No datasets or binary models need to be uploaded to reproduce the source code.
+Training saves the pipelines, two KMeans models and matching validation records. Evaluation exports the validation/test comparison and five prediction CSVs. Predictions include trip IDs, predicted log duration and predicted duration in seconds.
+
+The results reported above are from the completed final evaluation. Test results are for reporting only, not further feature selection or hyperparameter tuning.
+
+## Experiment documentation
+
+See [Experiment summary](reports/experiment_summary.md) for feature engineering, ablation findings and model comparisons. Feature-selection reports use a separate 993,415-row training experiment; the final evaluation above uses 1,000,000 training rows. Each run's results are documented separately for reproducibility.
