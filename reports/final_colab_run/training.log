@@ -1,0 +1,45 @@
+Removed 0 training rows with missing targets.
+Training Ridge (Official Course Model)...
+Validation RMSE=0.495187, R2=0.616881
+Training Polynomial Degree 2 + Ridge...
+Validation RMSE=0.464108, R2=0.663463
+Training Random Forest...
+[Parallel(n_jobs=4)]: Using backend ThreadingBackend with 4 concurrent workers.
+[Parallel(n_jobs=4)]: Done  42 tasks      | elapsed:  9.5min
+[Parallel(n_jobs=4)]: Done  80 out of  80 | elapsed: 17.3min finished
+[Parallel(n_jobs=4)]: Using backend ThreadingBackend with 4 concurrent workers.
+[Parallel(n_jobs=4)]: Done  42 tasks      | elapsed:    2.6s
+[Parallel(n_jobs=4)]: Done  80 out of  80 | elapsed:    5.2s finished
+Validation RMSE=0.424157, R2=0.718908
+Training Gradient Boosting...
+      Iter       Train Loss      OOB Improve   Remaining Time 
+         1           0.5648           0.0690            4.57m
+         2           0.5029           0.0534            4.54m
+         3           0.4605           0.0478            4.82m
+         4           0.4195           0.0362            4.63m
+         5           0.3932           0.0336            4.51m
+         6           0.3640           0.0242            4.43m
+         7           0.3414           0.0207            4.44m
+         8           0.3236           0.0176            4.42m
+         9           0.3123           0.0158            4.34m
+        10           0.3021           0.0127            4.27m
+        20           0.2451           0.0032            3.79m
+        30           0.2268           0.0025            3.45m
+        40           0.2163           0.0015            2.93m
+        50           0.2077           0.0016            2.43m
+        60           0.2020          -0.0007            1.94m
+        70           0.1956           0.0004            1.46m
+        80           0.1952          -0.0006           58.28s
+        90           0.1913          -0.0007           29.11s
+       100           0.1922          -0.0003            0.00s
+Validation RMSE=0.440879, R2=0.696308
+Training XGBoost...
+Validation RMSE=0.417929, R2=0.727102
+
+All metrics use log1p(trip_duration).
+                        model     rmse       r2  train_rows  validation_rows
+Ridge (Official Course Model) 0.495187 0.616881     1000000           229319
+  Polynomial Degree 2 + Ridge 0.464108 0.663463     1000000           229319
+                Random Forest 0.424157 0.718908     1000000           229319
+            Gradient Boosting 0.440879 0.696308     1000000           229319
+                      XGBoost 0.417929 0.727102     1000000           229319

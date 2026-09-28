@@ -68,3 +68,11 @@ mlflow.db
 
 # Final predictions are generated locally.
 /predictions/
+
+# Colab transfers and generated bundles
+*.zip
+/nyc_taxi_final_artifacts/
+/nyc_taxi_data/
+# Local agent workspaces
+.codex/
+.agents/

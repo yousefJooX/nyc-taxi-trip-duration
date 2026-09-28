@@ -1,0 +1,10 @@
+[Parallel(n_jobs=4)]: Using backend ThreadingBackend with 4 concurrent workers.
+[Parallel(n_jobs=4)]: Done  42 tasks      | elapsed:    2.1s
+[Parallel(n_jobs=4)]: Done  80 out of  80 | elapsed:    3.8s finished
+                        model  validation_rmse  test_rmse  validation_r2  test_r2
+Ridge (Official Course Model)         0.495187   0.490155       0.616881 0.620731
+  Polynomial Degree 2 + Ridge         0.464108   0.458792       0.663463 0.667715
+                Random Forest         0.424157   0.419676       0.718908 0.721960
+            Gradient Boosting         0.440879   0.436288       0.696308 0.699512
+                      XGBoost         0.417929   0.412810       0.727102 0.730983
+Final reporting only. Ridge(alpha=1) remains the Official Course Model.

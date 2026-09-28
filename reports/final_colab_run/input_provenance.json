@@ -1,0 +1,13 @@
+{
+  "colab_url": "https://colab.research.google.com/drive/1EETmiZuSLPmrZ0TDzVm07DDsKNowc1KW",
+  "data_bundle_sha256": "9fa1472e48aa10316caa2039fc4b906ff4ab30b5346bae5776ce53a43f8451c4",
+  "notebook_sha256": "1296b47307e3cce89dc8dd6bc7bee641d94c4d206a7b8498f875216bff8d2b27",
+  "status": "completed; five trained models and final test results verified",
+  "prediction_rows": {
+    "gradient_boosting_predictions.csv": 229322,
+    "polynomial_ridge_predictions.csv": 229322,
+    "random_forest_predictions.csv": 229322,
+    "xgboost_predictions.csv": 229322,
+    "ridge_predictions.csv": 229322
+  }
+}

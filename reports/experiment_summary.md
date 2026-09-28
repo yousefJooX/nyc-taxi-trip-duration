@@ -15,7 +15,7 @@ Fit     Compare      Report once after decisions are locked
 
 We use the provided, separate train and validation partitions. Train fits model parameters, preprocessing, and KMeans. Validation is used for feature experiments and model comparison, using transformations learned from train. Test remains untouched until all decisions are locked.
 
-**We did NOT use test results for feature engineering decisions, model selection, or hyperparameter tuning. Test evaluation is still pending.**
+**We did NOT use test results for feature engineering decisions, model selection, or hyperparameter tuning. Final test reporting has now completed in a separate locked run; see sections 16–17.**
 
 The main experiment documented here is the saved Colab run: **993,415 usable training rows and 229,319 validation rows**. These are historical measurements, not results from rerunning the simplified source code.
 
@@ -249,7 +249,7 @@ Feature Engineering helped the fixed Ridge model. Polynomial expansion and tree 
 - [x] Target transformation does not use validation statistics.
 - [x] KMeans fitted on train only.
 - [x] Validation receives `KMeans.predict()`.
-- [ ] Test will receive `KMeans.predict()` when evaluated.
+- [x] Final test received `KMeans.predict()` using the saved train-fitted clusters.
 - [x] StandardScaler fitted through the training pipeline only.
 - [x] OneHotEncoder fitted through the training pipeline only.
 - [x] Test was not used for feature selection.
@@ -265,65 +265,37 @@ Feature Engineering helped the fixed Ridge model. Polynomial expansion and tree 
 
 ## 15. Historical / Provenance Note
 
-An earlier local run used **1,000,000 train / 229,319 validation rows**, with selected Ridge **RMSE = 0.495187; R² = 0.616881**. Its `feature_ablation.csv`, `benchmark_results.csv`, and `run_metadata.json` are preserved for provenance. The exact reason for its training-row difference from Colab was not established; the single missing label does not explain it. **Do not combine the two runs.**
+An earlier local run used **1,000,000 train / 229,319 validation rows**, with selected Ridge **RMSE = 0.495187; R² = 0.616881**. Its `feature_ablation.csv`, `benchmark_results.csv`, and `run_metadata.json` are preserved under `reports/historical_local/` for provenance. The exact reason for its training-row difference from Colab was not established; the single missing label does not explain it. **Do not combine the two runs.**
 
 The main experiment is **Colab: 993,415 train / 229,319 validation**. `colab_feature_ablation.csv` and `colab_benchmark_results.csv` transcribe the six-decimal saved outputs of `notebooks/Untitled13.ipynb`, without inventing extra precision. They are not new executions of the simplified code. A future training run will write fresh results; the Colab-prefixed files preserve this history. Input-file and environment-version differences may affect reproducibility.
 
-## 16. Current Project State
+## 16. Current Project State — Final Run Complete
 
-**COMPLETED:**
+The historical feature-selection experiment above remains unchanged. A new Colab execution used the current source and the local provided split: **1,000,000 training rows**, **229,319 validation rows**, and **229,322 test rows**. No missing training labels were removed. Full training took **1,577.3 seconds** (about 26.3 minutes).
 
-- EDA.
-- Target transformation.
-- Baseline Ridge.
-- Distance features.
-- Leakage-safe KMeans.
-- Coordinate cleaning for KMeans fitting.
-- Feature Engineering.
-- Sequential feature ablation.
-- Polynomial benchmark.
-- Random Forest benchmark.
-- Gradient Boosting benchmark.
-- XGBoost benchmark.
-- Educational source-code refactor.
+Six synthetic pipeline checks passed before training. All five pipelines and both train-fitted KMeans models were saved. Source hashes and dependency versions are recorded in `reports/final_colab_run/run_manifest.json`; the logs are beside it. The imported artifacts match the current project source.
 
-The refactor corrected an older notebook workflow that reused precomputed EDA clusters before splitting, shared a preprocessor across models, and required MLflow. The simplified workflow starts from the provided raw partitions, fits clusters on train only, and creates fresh preprocessors. Old processed EDA cluster columns are not model inputs. The pre-refactor comparison notebook was backed up in the task workspace; the Colab notebook remains preserved.
+The new trained pipelines are in local `models/`; five final prediction exports are in local `predictions/`. Each prediction CSV contains 229,322 rows. These large generated files are ignored by Git. The old model directory and full training CSV were moved to an external backup; sample train/validation/test files and full validation/test files remain local.
 
-The source exposes `add_features`, `fit_kmeans`, and `add_clusters`, followed by a visible training sequence. The comparison notebook shows the actual feature, clustering, preprocessing, and model steps without hiding them behind source imports; some duplication is deliberate for learning. Existing EDA plots were preserved, with a raw-target histogram and route-category example added. Automatic ablation, mandatory MLflow, and old cluster-count options were removed from the simplified workflow; legacy metadata remains historical evidence.
+**FINAL TEST STATUS: COMPLETE.** Use the saved outputs for reporting. Do not change features, hyperparameters or model choice based on these results.
 
-Model-local `validation_results.csv` pairs scores with the exact saved pipelines, preventing accidental pairing with a different historical run. The test workflow checks that all five model artifacts are present before opening test data. The existing local model directory contains only the older Ridge and two KMeans artifacts; all five final models still need to be trained and saved.
+## 17. Final Test Results — New Million-Row Colab Run
 
-Previous refactor verification passed six unit tests, syntax/import/help checks, and a synthetic CLI exercise with 79 usable training rows (one missing label removed from 80) and 30 validation rows. All five reloaded synthetic models reproduced their recorded scores, and notebook/source features matched. Those checks covered train-only preprocessing, predict-only clustering, target independence, separate preprocessors, and numeric-only polynomial expansion. Synthetic scores are not project results. This documentation update runs no training or test evaluation.
+These validation scores come from the exact saved pipelines evaluated on test. All metrics are in `log1p(trip_duration)` space.
 
-**NEXT:**
+| Model | Validation RMSE | Test RMSE | Validation R² | Test R² |
+|---|---:|---:|---:|---:|
+| Ridge (Official Course Model) | 0.495187 | 0.490155 | 0.616881 | 0.620731 |
+| Polynomial Degree 2 + Ridge | 0.464108 | 0.458792 | 0.663463 | 0.667715 |
+| Random Forest | 0.424157 | 0.419676 | 0.718908 | 0.721960 |
+| Gradient Boosting | 0.440879 | 0.436288 | 0.696308 | 0.699512 |
+| XGBoost | 0.417929 | 0.412810 | 0.727102 | 0.730983 |
 
-1. Review the simplified source code.
-2. Train/save all five final model artifacts using locked settings.
-3. Upload/use `test.csv`.
-4. Evaluate all five models **once** on test.
-5. Save `reports/final_test_results.csv`.
-6. Generate prediction CSVs.
-7. Do **not** tune anything after seeing test results.
+Source: `reports/final_test_results.csv`. New validation-only results are in `reports/benchmark_results.csv`. Previous local results remain under `reports/historical_local/`; historical 993,415-row Colab results remain in the Colab-prefixed reports.
 
-**FINAL TEST STATUS: NOT RUN YET.**
+XGBoost achieved the lowest test RMSE among these fixed benchmarks. **Ridge(alpha=1) remains the Official Course Model.** No test-based tuning or model substitution was performed.
 
-## 17. Final Test Plan
-
-Evaluate Ridge, Polynomial Degree 2 + Ridge, Random Forest, Gradient Boosting, and XGBoost together using saved preprocessing and train-fitted KMeans. Prediction must not fit or refit anything on test.
-
-For each model, report **Validation RMSE, Test RMSE, Validation R², and Test R²** in log-target space. Validation scores must come from the matching saved model's validation records, not an unrelated local or Colab report.
-
-Save the comparison to `reports/final_test_results.csv`. It currently contains only the header, with no test result rows. Save per-trip predictions to:
-
-- `predictions/ridge_predictions.csv`
-- `predictions/polynomial_ridge_predictions.csv`
-- `predictions/random_forest_predictions.csv`
-- `predictions/gradient_boosting_predictions.csv`
-- `predictions/xgboost_predictions.csv`
-
-Prediction exports include IDs when present, predicted log duration, and predicted seconds using `maximum(0, expm1(predicted_log_duration))`.
-
-**The final test is reporting only. After seeing its results: no feature changes, no hyperparameter tuning, and no model-selection changes.** Ridge remains the Official Course Model.
+Prediction exports include IDs, predicted log duration, and `maximum(0, expm1(predicted_log_duration))` seconds. Test preprocessing and KMeans inference used saved training transforms; no fitting on test.
 
 ## Quick Recall
 
@@ -338,4 +310,4 @@ Prediction exports include IDs when present, predicted log duration, and predict
 - Polynomial Ridge reached 0.466298 RMSE, supporting useful nonlinear interactions.
 - XGBoost led the benchmarks at 0.420183 RMSE; it does not replace official Ridge.
 - Keep the earlier million-row local results separate from Colab results.
-- Test is not run yet: evaluate once after locking decisions, then report without tuning.
+- Final test is complete for the new million-row run; report saved results without further tuning.

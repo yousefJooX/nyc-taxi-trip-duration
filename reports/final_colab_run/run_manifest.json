@@ -1,0 +1,23 @@
+{
+  "python": "3.13.15",
+  "packages": {
+    "numpy": "2.1.3",
+    "pandas": "2.2.3",
+    "scikit-learn": "1.6.1",
+    "joblib": "1.6.0",
+    "threadpoolctl": "3.6.0",
+    "xgboost": "3.4.1"
+  },
+  "source_sha256": {
+    "src/__init__.py": "b6b782d6479c8a85af45cdaa5d87ead5b4500ba6736dc47df658d4f7e321a801",
+    "src/features.py": "7c631a6d7b7d1372f39bfa04890242918b27b4ff5e781d731203a54cb5e4bd1d",
+    "src/train.py": "7d2705fbf43e3fe29ec9fc54b44b77095ba47b7b2a4bc6c8f5fdb4aeec597eb6",
+    "src/test.py": "7d55a08e856b6574ffa24c697f51eb907eaeeb680ec63e1771ac2916c2640798",
+    "tests/test_pipeline.py": "1cebb8c418d392c8eda85ab9d1359800543a5bfa05e5532e6edb93a9a234b309"
+  },
+  "official_model": "Ridge(alpha=1)",
+  "provenance": "Current local source and local provided split; new run; keep separate from historical Colab metrics",
+  "training_seconds": 1577.3307869434357,
+  "train_rows": 1000000,
+  "validation_rows": 229319
+}
